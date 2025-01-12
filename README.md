@@ -25,3 +25,21 @@ Nižšie je znázornený ERD diagram pôvodnej štruktúry zdrojových dát:
   <br>
   <em>Obrázok 1 Entitno-relačná schéma IMDB</em>
 </p>
+
+---
+## Dimenzionalny model
+
+Pre projekt bol navrhnutý hviezdicový model (star schema), ktorý zahŕňa faktovú tabuľku **'fact_ratings'** a nasledujúce dimenzie:
+- **'dim_movie'**: Informácie o filmoch (ID, názov, dátum publikovania, dĺžka, krajina, jazyk, produkčná spoločnosť).
+- **'dim_actor'**: Informácie o hercoch (ID, meno, výška, dátum narodenia, známe filmy).
+- **'dim_director'**: Informácie o režiséroch (ID, meno, výška, dátum narodenia, známe filmy).
+- **'dim_genre'**: Informácie o žánroch (ID filmu, žáner).
+- **'dim_date'**: Informácie o dátumoch (deň, tyždeň, mesiac, rok).
+
+Štruktúra hviezdicového modelu je zobrazená na diagrame nižšie. Tento diagram ukazuje vzťahy medzi faktovou tabuľkou a dimenziami, čo uľahčuje pochopenie a implementáciu modelu.
+
+<p align="center">
+  <img src="https://github.com/JKabathova/AmazonBooks-ETL/blob/master/star_schema.png" alt="Star Schema">
+  <br>
+  <em>Obrázok 2 Schéma hviezdy pre AmazonBooks</em>
+</p>
