@@ -54,6 +54,6 @@ Dáta z `.csv` súborov boli nahrané do staging tabuliek v Snowflake pomocou pr
 ```sql
 COPY INTO movie_staging
 FROM @imdb_stage/movie.csv
-FILE_FORMAT = (TYPE = `CSV`, FIELD_OPTIONALLY_ENCLOSED_BY = `"` SKIP_HEADER = 1)
-ON_ERROR = `CONTINUE`;
+FILE_FORMAT = (TYPE = 'CSV', FIELD_OPTIONALLY_ENCLOSED_BY = '"' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
 ```
