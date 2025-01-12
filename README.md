@@ -7,7 +7,7 @@ Téma projektu sa zameriava na analýzu filmových dát z databázy podobnej IMD
 ## 1. Uvod a popis zdrojovych dat
 Téma projektu sa zameriava na analýzu filmových dát z verejného datasetu, ktorý obsahuje informácie o filmoch, ich hodnoteniach, hercoch, režiséroch a žánroch. Cieľom projektu je identifikovať najlepšie hodnotené filmy, obľúbených hercov a režisérov a analyzovať preferencie divákov na základe žánrov a krajín produkcie.
 
-###Zdrojové dáta
+### Zdrojové dáta
 
 Dataset obsahuje nasledujúce tabuľky:
 - 'movie.csv': Informácie o filmoch (ID, názov, trvanie, rok vydania, krajina produkcie, ID žánru).
@@ -17,11 +17,11 @@ Dataset obsahuje nasledujúce tabuľky:
 - 'director_mapping.csv': Mapovanie režisérov k filmom (ID režiséra, ID filmu).
 - 'genre.csv': Informácie o žánroch (ID žánru, názov žánru).
 
-###ERD diagram
+### ERD diagram
 
 Nižšie je znázornený ERD diagram pôvodnej štruktúry zdrojových dát:
 <p align="center">
-  <img src="https://github.com/JKabathova/AmazonBooks-ETL/blob/master/erd_schema.png" alt="ERD Schema">
+  <img src="https://github.com/YehorDashchenko/ETL-proces-datasetu-IMDB/blob/main/IMDB_ERD.png">
   <br>
   <em>Obrázok 1 Entitno-relačná schéma IMDB</em>
 </p>
