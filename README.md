@@ -237,6 +237,8 @@ ORDER BY
 LIMIT 10;
 ```
 
+---
+
 **3. Krajiny s najväčším počtom natočených filmov.**
 
 <p align="center">
@@ -261,6 +263,8 @@ ORDER BY
 LIMIT 10;
 ```
 
+---
+
 **4. Priemerná dĺžka filmov.**
 
 <p align="center">
@@ -283,6 +287,8 @@ GROUP BY
 ORDER BY 
     movie_duration;
 ```
+
+---
 
 **5. Najlepší režiséri (podľa priemerného hodnotenia ich filmov).**
 
