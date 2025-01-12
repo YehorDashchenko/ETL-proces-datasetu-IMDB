@@ -1,1 +1,1 @@
-# ETL-proces-datasetu-IMDB
+Dokumentácia k implementácii ETL procesu v Snowflake
