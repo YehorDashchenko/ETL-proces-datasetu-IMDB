@@ -321,4 +321,4 @@ Dashboard zhromažďuje usporiadané údaje a odpovedá na dôležité otázky t
 
 ---
 
-**Autor: ** Dashchenko Yehor
+**Autor:** Dashchenko Yehor
