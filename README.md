@@ -57,3 +57,47 @@ FROM @imdb_stage/movie.csv
 FILE_FORMAT = (TYPE = 'CSV', FIELD_OPTIONALLY_ENCLOSED_BY = '"' SKIP_HEADER = 1)
 ON_ERROR = 'CONTINUE';
 ```
+
+**2. Transform (Transformácia dát)**
+Dáta boli transformované do dimenzií a faktovej tabuľky:
+
+```sql
+CREATE OR REPLACE TABLE dim_movie AS 
+SELECT DISTINCT
+    id AS movie_id,
+    title,
+    date_published,
+    duration,
+    country,
+    languages,
+    production_company
+FROM movie_staging;
+```
+
+**3. Load (Načítanie dát)**
+Transformované dáta boli nahrané do finálnych tabuliek:
+
+```sql
+CREATE OR REPLACE TABLE fact_ratings AS
+SELECT DISTINCT
+    r.movie_id AS fact_movie_id,
+    r.avg_rating,
+    r.total_votes,
+    r.median_rating,
+    MAX(r.avg_rating) OVER () AS max_rating,
+    MIN(r.avg_rating) OVER () AS min_rating,
+    d.movie_id AS dim_movie_id,
+    a.actor_id AS dim_actor_id,
+    dir.director_id AS dim_director_id,
+    g.genre AS dim_genre_id,
+    dat.dim_dateID AS dim_date_id
+FROM ratings_staging r
+LEFT JOIN dim_movie d ON r.movie_id = d.movie_id
+LEFT JOIN role_mapping_staging rm ON r.movie_id = rm.movie_id
+LEFT JOIN dim_actor a ON rm.name_id = a.actor_id
+LEFT JOIN director_mapping_staging dm ON r.movie_id = dm.movie_id
+LEFT JOIN dim_director dir ON dm.name_id = dir.director_id
+LEFT JOIN genre_staging gs ON r.movie_id = gs.movie_id
+LEFT JOIN dim_genre g ON gs.genre = g.genre
+LEFT JOIN dim_date dat ON d.date_published = dat.full_date;
+```
