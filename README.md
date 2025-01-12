@@ -1,1 +1,1 @@
-Dokumentácia k implementácii ETL procesu v Snowflake
+№ Dokumentácia k implementácii ETL procesu v Snowflake
