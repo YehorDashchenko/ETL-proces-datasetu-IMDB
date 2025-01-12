@@ -50,6 +50,12 @@ Pre projekt bol navrhnutý hviezdicový model (star schema), ktorý zahŕňa fak
 Kroky ETL procesu
 
 **1. Extract (Extrahovanie dát)**
+
+Najprv boli dáta z pôvodného súboru (formát .csv) načítané do Snowflake cez interné úložisko stage s názvom my_stage. Príkaz na vytvorenie stage:
+```sql
+CREATE OR REPLACE STAGE imdb_stage FILE_FORMAT = (TYPE = 'CSV' FIELD_OPTIONALLY_ENCLOSED_BY = '"');
+```
+
 Dáta z `.csv` súborov boli nahrané do staging tabuliek v Snowflake pomocou príkazov `COPY INTO`.
 ```sql
 COPY INTO movie_staging
@@ -59,23 +65,85 @@ ON_ERROR = 'CONTINUE';
 ```
 
 **2. Transform (Transformácia dát)**
-Dáta boli transformované do dimenzií a faktovej tabuľky:
+
+V tomto štádiu boli vytvorené dimenzie.
+
+1. `dim_movie`
+Tabuľka obsahuje údaje o filmoch, ktoré boli prevzaté z tabuľky `movie_staging`.
 
 ```sql
 CREATE OR REPLACE TABLE dim_movie AS 
 SELECT DISTINCT
-    id AS movie_id,
-    title,
-    date_published,
-    duration,
-    country,
-    languages,
-    production_company
-FROM movie_staging;
+    m.id AS movie_id,
+    m.title,
+    m.date_published,
+    m.duration,
+    m.country,
+    m.languages,
+    m.production_company
+FROM movie_staging m;
+```
+
+2. `dim_actor`
+Tabuľka obsahuje údaje o hercoch, ktoré boli prevzaté z tabuliek `names_staging` a `role_mapping_staging`.
+
+```sql
+CREATE OR REPLACE TABLE dim_actor AS
+SELECT DISTINCT
+    n.id AS actor_id,
+    n.name,
+    n.height,
+    n.date_of_birth,
+    n.known_for_movies
+FROM names_staging n
+JOIN role_mapping_staging dm ON n.id = dm.name_id;
+```
+
+3. `dim_director`
+Tabuľka obsahuje údaje o režiséroch, ktoré boli prevzaté z tabuliek `names_staging` a `role_mapping_staging`.
+
+```sql
+CREATE OR REPLACE TABLE dim_director AS 
+SELECT DISTINCT
+    d.id AS director_id,
+    d.name,
+    d.height,
+    d.date_of_birth,
+    d.known_for_movies
+FROM names_staging d
+JOIN director_mapping_staging dn ON d.id = dn.name_id;
+```
+
+4. `dim_genre`
+Tabuľka obsahuje údaje o žánroch, ktoré boli prevzaté z tabuľky `genre_staging`.
+
+```sql
+CREATE OR REPLACE TABLE dim_genre AS
+SELECT DISTINCT
+    g.movie_id AS dim_movie_id,
+    g.genre
+FROM genre_staging g;
+```
+
+5. `dim_date`
+Tabuľka obsahuje údaje o dátumoch publikácií filmov, ktoré boli prevzaté z tabuľky movie_staging.
+
+```sql
+CREATE OR REPLACE TABLE dim_date AS
+SELECT DISTINCT
+    id,
+    ROW_NUMBER() OVER (ORDER BY CAST(date_published AS DATE)) AS dim_dateID,
+    date_published AS full_date,   
+    DAY(date_published) AS day,    
+    WEEK(date_published) AS week,  
+    MONTH(date_published) AS month,
+    YEAR(date_published) AS year   
+FROM 
+    movie_staging;
 ```
 
 **3. Load (Načítanie dát)**
-Transformované dáta boli nahrané do finálnych tabuliek:
+Transformované dáta boli nahrané do finálnej tabuľky `fact_ratings`, s údajmi o hodnoteniach filmov:
 
 ```sql
 CREATE OR REPLACE TABLE fact_ratings AS
@@ -101,3 +169,150 @@ LEFT JOIN genre_staging gs ON r.movie_id = gs.movie_id
 LEFT JOIN dim_genre g ON gs.genre = g.genre
 LEFT JOIN dim_date dat ON d.date_published = dat.full_date;
 ```
+
+Po úspešnom vytvorení dimenzií a faktovej tabuľky boli dáta presunuté do finálnej štruktúry. Na záver boli staging tabuľky vymazané, aby sa optimalizovalo využitie úložiska.
+
+```sql
+DROP TABLE IF EXISTS movie_staging;
+DROP TABLE IF EXISTS names_staging;
+DROP TABLE IF EXISTS role_mapping_staging;
+DROP TABLE IF EXISTS ratings_staging;
+DROP TABLE IF EXISTS director_mapping_staging;
+DROP TABLE IF EXISTS genre_staging;
+```
+
+---
+
+## 4. Vizualizacia dat
+
+**1. Filmy s najlepším hodnotením.**
+
+<p align="center">
+  <img src="https://github.com/YehorDashchenko/ETL-proces-datasetu-IMDB/blob/main/DATA_VISUALISATIONS/Top%20rated%20movies.png">
+  <br>
+  <em>Filmy s najlepším hodnotením</em>
+</p>
+
+Táto vizualizácia nám ukazuje 10 najlepších filmov podľa hodnotenia na IMDB. S pomocou toho môžeme zistiť, že napríklad `"Kirket"` a `"Love in Kilnerry"` majú najvyššie hodnotenie, čo naznačuje, že sa pravdepodobne budú páčiť používateľovi.
+
+```sql
+CREATE OR REPLACE VIEW top_rated_movies AS
+SELECT DISTINCT 
+    m.title,
+    r.avg_rating
+FROM 
+    dim_movie m
+JOIN 
+    fact_ratings r ON m.movie_id = r.fact_movie_id
+ORDER BY 
+    r.avg_rating DESC
+LIMIT 10;
+```
+
+---
+
+**2. Najznámejší herci (podľa počtu filmov, v ktorých sa zúčastnili).**
+
+<p align="center">
+  <img src="https://github.com/YehorDashchenko/ETL-proces-datasetu-IMDB/blob/main/DATA_VISUALISATIONS/10%20Most%20popular%20actors.png">
+  <br>
+  <em>Najznámejší herci (podľa počtu filmov, v ktorých sa zúčastnili)</em>
+</p>
+
+Táto vizualizácia nám ukazuje 10 najznámejších hercov podľa počtu filmov, v ktorých sa objavili. S pomocou toho môžeme zhodnotiť profesionalitu a skúsenosti herca alebo pomôcť používateľovi nájsť filmy s konkrétnym hercom. V príklade môžeme zistiť, že najpopulárnejším je `James Franco`.
+
+```sql
+CREATE OR REPLACE VIEW popular_actors AS
+SELECT 
+    a.name AS actor_name,
+    COUNT(f.fact_movie_id) AS movie_count
+FROM 
+    dim_actor a
+JOIN 
+    fact_ratings f ON a.actor_id = f.dim_actor_id
+GROUP BY 
+    a.name
+ORDER BY 
+    movie_count DESC
+LIMIT 10;
+```
+
+**3. Krajiny s najväčším počtom natočených filmov.**
+
+<p align="center">
+  <img src="https://github.com/YehorDashchenko/ETL-proces-datasetu-IMDB/blob/main/DATA_VISUALISATIONS/Countires%20by%20movie%20count.png">
+  <br>
+  <em>Krajiny s najväčším počtom natočených filmov</em>
+</p>
+
+Táto vizualizácia nám ukazuje počet filmov, ktoré natočila každá krajina. S pomocou toho môžeme zistiť, že `Amerika` natočila najviac filmov a má v tom najväčšie skúsenosti. Takisto to môže pomôcť ľuďom z rôznych krajín nájsť informácie o filmoch, ktoré boli natočené v ich rodnej krajine.
+
+```sql
+CREATE OR REPLACE VIEW movies_by_country AS
+SELECT 
+    m.country,
+    COUNT(m.movie_id) AS movie_count
+FROM 
+    dim_movie m
+GROUP BY 
+    m.country
+ORDER BY 
+    movie_count DESC
+LIMIT 10;
+```
+
+**4. Priemerná dĺžka filmov.**
+
+<p align="center">
+  <img src="https://github.com/YehorDashchenko/ETL-proces-datasetu-IMDB/blob/main/DATA_VISUALISATIONS/Average%20movie%20duration.png">
+  <br>
+  <em>Priemerná dĺžka filmov</em>
+</p>
+
+Táto vizualizácia nám ukazuje priemernú dĺžku filmov. S pomocou toho môžeme zistiť, že väčšina filmov trvá od `80` do `110` minút, pričom s touto informáciou môže používateľ vypočítať približný čas, ktorý si môže vyhradiť na sledovanie filmu.
+
+```sql
+CREATE OR REPLACE VIEW movie_duration_distribution AS
+SELECT 
+    m.duration AS movie_duration, 
+    COUNT(m.movie_id) AS movie_count
+FROM 
+    dim_movie m
+GROUP BY 
+    m.duration
+ORDER BY 
+    movie_duration;
+```
+
+**5. Najlepší režiséri (podľa priemerného hodnotenia ich filmov).**
+
+<p align="center">
+  <img src="https://github.com/YehorDashchenko/ETL-proces-datasetu-IMDB/blob/main/DATA_VISUALISATIONS/The%20best%20directors%20by%20rating.png">
+  <br>
+  <em>Najlepší režiséri (podľa priemerného hodnotenia ich filmov)</em>
+</p>
+
+Táto vizualizácia nám ukazuje najlepších režisérov podľa priemerného hodnotenia ich filmov. S pomocou toho môže používateľ vybrať režiséra a pozrieť si jeho film, pričom sa spolieha na jeho profesionalitu.
+
+```sql
+CREATE OR REPLACE VIEW top_directors_by_rating AS
+SELECT 
+    dir.name AS director_name,
+    AVG(r.avg_rating) AS avg_rating
+FROM 
+    dim_director dir
+JOIN 
+    fact_ratings r ON dir.director_id = r.dim_director_id
+GROUP BY 
+    dir.name
+ORDER BY 
+    avg_rating DESC;
+```
+
+---
+
+Dashboard zhromažďuje usporiadané údaje a odpovedá na dôležité otázky týkajúce sa výberu filmov, hercov alebo režisérov a hlbšieho analýzy informácií o filmoch. Vizualizácie nám pomáhajú podrobnejšie a jednoduchšie analyzovať údaje a robiť závery pre seba týkajúce sa týchto informácií.
+
+---
+
+**Autor: ** Dashchenko Yehor
