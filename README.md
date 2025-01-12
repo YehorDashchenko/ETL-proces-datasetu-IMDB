@@ -10,12 +10,12 @@ Téma projektu sa zameriava na analýzu filmových dát z verejného datasetu, k
 ### Zdrojové dáta
 
 Dataset obsahuje nasledujúce tabuľky:
-- 'movie.csv': Informácie o filmoch (ID, názov, trvanie, rok vydania, krajina produkcie, ID žánru).
-- 'ratings.csv': Hodnotenia filmov (ID filmu, priemerné hodnotenie, počet hodnotení).
-- 'names.csv': Zoznam osôb (ID osoby, meno, dátum narodenia, profesia).
-- 'role_mapping.csv': Mapovanie rolí osôb vo filmoch (ID osoby, ID filmu, rola).
-- 'director_mapping.csv': Mapovanie režisérov k filmom (ID režiséra, ID filmu).
-- 'genre.csv': Informácie o žánroch (ID žánru, názov žánru).
+- `movie.csv`: Informácie o filmoch (ID, názov, trvanie, rok vydania, krajina produkcie, ID žánru).
+- `ratings.csv`: Hodnotenia filmov (ID filmu, priemerné hodnotenie, počet hodnotení).
+- `names.csv`: Zoznam osôb (ID osoby, meno, dátum narodenia, profesia).
+- `role_mapping.csv`: Mapovanie rolí osôb vo filmoch (ID osoby, ID filmu, rola).
+- `director_mapping.csv`: Mapovanie režisérov k filmom (ID režiséra, ID filmu).
+- `genre.csv`: Informácie o žánroch (ID žánru, názov žánru).
 
 ### ERD diagram
 
@@ -29,12 +29,12 @@ Nižšie je znázornený ERD diagram pôvodnej štruktúry zdrojových dát:
 ---
 ## Dimenzionalny model
 
-Pre projekt bol navrhnutý hviezdicový model (star schema), ktorý zahŕňa faktovú tabuľku **'fact_ratings'** a nasledujúce dimenzie:
-- **'dim_movie'**: Informácie o filmoch (ID, názov, dátum publikovania, dĺžka, krajina, jazyk, produkčná spoločnosť).
-- **'dim_actor'**: Informácie o hercoch (ID, meno, výška, dátum narodenia, známe filmy).
-- **'dim_director'**: Informácie o režiséroch (ID, meno, výška, dátum narodenia, známe filmy).
-- **'dim_genre'**: Informácie o žánroch (ID filmu, žáner).
-- **'dim_date'**: Informácie o dátumoch (deň, tyždeň, mesiac, rok).
+Pre projekt bol navrhnutý hviezdicový model (star schema), ktorý zahŕňa faktovú tabuľku **`fact_ratings`** a nasledujúce dimenzie:
+- **`dim_movie`**: Informácie o filmoch (ID, názov, dátum publikovania, dĺžka, krajina, jazyk, produkčná spoločnosť).
+- **`dim_actor`**: Informácie o hercoch (ID, meno, výška, dátum narodenia, známe filmy).
+- **`dim_director`**: Informácie o režiséroch (ID, meno, výška, dátum narodenia, známe filmy).
+- **`dim_genre`**: Informácie o žánroch (ID filmu, žáner).
+- **`dim_date`**: Informácie o dátumoch (deň, tyždeň, mesiac, rok).
 
 Štruktúra hviezdicového modelu je zobrazená na diagrame nižšie. Tento diagram ukazuje vzťahy medzi faktovou tabuľkou a dimenziami, čo uľahčuje pochopenie a implementáciu modelu.
 
@@ -50,10 +50,10 @@ Pre projekt bol navrhnutý hviezdicový model (star schema), ktorý zahŕňa fak
 Kroky ETL procesu
 
 **1. Extract (Extrahovanie dát)**
-Dáta z '.csv' súborov boli nahrané do staging tabuliek v Snowflake pomocou príkazov 'COPY INTO'.
-'''sql
+Dáta z `.csv` súborov boli nahrané do staging tabuliek v Snowflake pomocou príkazov `COPY INTO`.
+```sql
 COPY INTO movie_staging
 FROM @imdb_stage/movie.csv
-FILE_FORMAT = (TYPE = 'CSV', FIELD_OPTIONALLY_ENCLOSED_BY = '"' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-'''
+FILE_FORMAT = (TYPE = `CSV`, FIELD_OPTIONALLY_ENCLOSED_BY = `"` SKIP_HEADER = 1)
+ON_ERROR = `CONTINUE`;
+```
