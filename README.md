@@ -27,7 +27,7 @@ Nižšie je znázornený ERD diagram pôvodnej štruktúry zdrojových dát:
 </p>
 
 ---
-## Dimenzionalny model
+## 2. Dimenzionalny model
 
 Pre projekt bol navrhnutý hviezdicový model (star schema), ktorý zahŕňa faktovú tabuľku **`fact_ratings`** a nasledujúce dimenzie:
 - **`dim_movie`**: Informácie o filmoch (ID, názov, dátum publikovania, dĺžka, krajina, jazyk, produkčná spoločnosť).
@@ -51,7 +51,7 @@ Kroky ETL procesu
 
 **1. Extract (Extrahovanie dát)**
 
-Najprv boli dáta z pôvodného súboru (formát .csv) načítané do Snowflake cez interné úložisko stage s názvom my_stage. Príkaz na vytvorenie stage:
+Najprv boli dáta z pôvodného súboru (formát .csv) načítané do Snowflake cez interné úložisko stage s názvom `my_stage`. Príkaz na vytvorenie stage:
 ```sql
 CREATE OR REPLACE STAGE imdb_stage FILE_FORMAT = (TYPE = 'CSV' FIELD_OPTIONALLY_ENCLOSED_BY = '"');
 ```
@@ -126,7 +126,7 @@ FROM genre_staging g;
 ```
 
 5. `dim_date`
-Tabuľka obsahuje údaje o dátumoch publikácií filmov, ktoré boli prevzaté z tabuľky movie_staging.
+Tabuľka obsahuje údaje o dátumoch publikácií filmov, ktoré boli prevzaté z tabuľky `movie_staging`.
 
 ```sql
 CREATE OR REPLACE TABLE dim_date AS
