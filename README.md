@@ -39,7 +39,7 @@ Pre projekt bol navrhnutý hviezdicový model (star schema), ktorý zahŕňa fak
 Štruktúra hviezdicového modelu je zobrazená na diagrame nižšie. Tento diagram ukazuje vzťahy medzi faktovou tabuľkou a dimenziami, čo uľahčuje pochopenie a implementáciu modelu.
 
 <p align="center">
-  <img src="https://github.com/JKabathova/AmazonBooks-ETL/blob/master/star_schema.png" alt="Star Schema">
+  <img src="https://github.com/YehorDashchenko/ETL-proces-datasetu-IMDB/blob/main/STAR_SCHEME.png">
   <br>
   <em>Obrázok 2 Schéma hviezdy pre AmazonBooks</em>
 </p>
